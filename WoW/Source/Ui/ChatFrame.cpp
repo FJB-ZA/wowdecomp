@@ -28,6 +28,7 @@
 #include "WoW/Source/UIUtil/Tooltip.h"
 #include "WoW/Source/Ui/CGAutoCompleteName.h"
 #include "WoW/Source/Ui/CKBSystem.h"
+#include "WoW/Source/Ui/SoloWow.h"
 #include "WoW/Source/Ui/GameUI.h"
 #include "WoW/Source/Ui/RaidInfo.h"
 #include "WoW/Source/Ui/Tutorial.h"
@@ -1110,6 +1111,11 @@ void CGChat::AddChatMessage(const char* text, int32_t type, const char* senderNa
         }
 
         *dest = 0;
+
+        // solo-wow addition: the server's status whispers to us are kept by the client (Ui/SoloWow.h)
+        if (type == CHAT_MSG_WHISPER && senderGuid == ClntObjMgrGetActivePlayer() && SoloWow::HandleAddonMessage(buffer, message)) {
+            return;
+        }
 
         const char* channel;
 
