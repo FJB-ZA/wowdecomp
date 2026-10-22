@@ -143,6 +143,7 @@
 #include "WoW/Source/WorldClient/FrameTime.h"
 #include "WoW/Source/WorldClient/Map.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
+#include "WoW/Source/Ui/SoloWowNamePlates.h"
 
 // STATIC: 0x00ADAC04
 static INVENTORY_SLOTS s_virtualItemInvSlots[2] = { INVSLOT_MAINHAND, INVSLOT_OFFHAND };
@@ -783,6 +784,9 @@ void CGUnit_C::DestroyNamePlate() {
     if (!this->m_namePlateFrame) {
         return;
     }
+
+    // solo-wow addition: NAME_PLATE_UNIT_REMOVED while the token still works
+    SoloWowNamePlates::OnRemoved(this);
 
     if (CGUnit_C::s_namePlateFocus == this->m_namePlateFrame) {
         CGUnit_C::s_namePlateFocus = nullptr;
@@ -10448,6 +10452,9 @@ void CGUnit_C::Disable() {
     this->ClearThreatList();
 
     if (this->m_namePlateFrame) {
+        // solo-wow addition: NAME_PLATE_UNIT_REMOVED while the token still works
+        SoloWowNamePlates::OnRemoved(this);
+
         if (CGUnit_C::s_namePlateFocus == this->m_namePlateFrame) {
             CGUnit_C::s_namePlateFocus = nullptr;
         }
@@ -20114,6 +20121,9 @@ void CGUnit_C::NamePlateAddOrUpdate(const C3Vector& position, CGWorldFrame* worl
 
         this->UpdateSpellCastBars(FrameTime::s_curTimeMs);
         this->ObjectNameVisibilityChanged();
+
+        // solo-wow addition: the nameplate's unit token and NAME_PLATE_UNIT_ADDED
+        SoloWowNamePlates::OnAdded(this);
         return;
     }
 
@@ -20236,6 +20246,9 @@ void CGUnit_C::CancelShapeshiftForMount() {
 // VERIFY: 5f551aa3 manual
 // OFFSET: 0x00727130
 void CGUnit_C::NamePlateClearAll() {
+    // solo-wow addition: the nameplate unit tokens go too (UI shutdown, no events)
+    SoloWowNamePlates::Clear();
+
     CGNamePlateFrame* frame = s_namePlates.Head();
 
     while (frame) {

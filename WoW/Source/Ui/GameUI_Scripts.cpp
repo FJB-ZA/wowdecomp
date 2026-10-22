@@ -167,6 +167,7 @@
 #include "WoW/Source/DB/Rec/PaperDollItemFrameRec.h"
 #include "WoW/Source/Object/WGUID.h"
 #include "WoW/Source/Ui/SoloWow.h"
+#include "WoW/Source/Ui/SoloWowNamePlates.h"
 
 // STATIC: 0x00BD0CC4
 static CWOWClientStatus* s_loadAddOnStatus;
@@ -6567,6 +6568,7 @@ void LoadScriptFunctions() {
     GMTicketInfoRegisterScriptFunctions();
     BattlenetUI_RegisterScriptFunctions();
     SoloWow::RegisterScriptFunctions();
+    SoloWowNamePlates::RegisterScriptFunctions();
 }
 
 // VERIFY: ce499890 manual
@@ -6650,4 +6652,5 @@ void UnloadScriptFunctions() {
     GMTicketInfoUnregisterScriptFunctions();
     BattlenetUI_UnregisterScriptFunctions();
     SoloWow::UnregisterScriptFunctions();
+    SoloWowNamePlates::UnregisterScriptFunctions();
 }

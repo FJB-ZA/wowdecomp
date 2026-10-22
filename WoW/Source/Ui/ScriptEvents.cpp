@@ -23,6 +23,7 @@
 #include "WoW/Source/DB/Rec/SpellIconRec.h"
 #include "WoW/Source/Object/ObjectClient/AuraData.h"
 #include "WoW/Source/DB/DBClient/DBClient.h"
+#include "WoW/Source/Ui/SoloWowNamePlates.h"
 
 // STATIC: 0x00C24EB0
 const char* g_scriptEvents[NUM_SCRIPT_EVENTS];
@@ -162,6 +163,10 @@ bool Script_GetGUIDFromToken(const char* token, WOWGUID& guid, bool defaultToTar
     } else if (!SStrCmpI(token, "focus", 5)) {
         token += 5;
         guid = CGGameUI::m_focusTarget;
+    } else if (!SStrCmpI(token, "nameplate", 9)) {
+        // solo-wow addition (Ui/SoloWowNamePlates.h)
+        token += 9;
+        guid = SoloWowNamePlates::GetUnit(SStrToUnsigned(&token) - 1);
     } else if (!SStrCmpI(token, "npc", STORM_MAX_STR)) {
         token += 3;
         guid = CGGameUI::m_interactTarget;
@@ -939,6 +944,13 @@ char** Script_GetTokenIDsFromGUID(const WOWGUID& guid, int32_t* count) {
 
     if (guid == CGGameUI::m_interactTarget) {
         SStrCopy(s_tokenIDs[(*count)++], "npc", sizeof(s_tokenBuffers[0]));
+    }
+
+    // solo-wow addition: unit events for nameplate units (Ui/SoloWowNamePlates.h)
+    int32_t namePlate = SoloWowNamePlates::GetIndex(guid);
+
+    if (namePlate >= 0 && *count < static_cast<int32_t>(sizeof(s_tokenBuffers) / sizeof(s_tokenBuffers[0]))) {
+        SStrPrintf(s_tokenIDs[(*count)++], sizeof(s_tokenBuffers[0]), "nameplate%d", namePlate + 1);
     }
 
     return s_tokenIDs;
