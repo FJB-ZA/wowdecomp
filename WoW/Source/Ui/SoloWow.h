@@ -11,7 +11,7 @@
 //   GetSoloWowProgression()     -> step (0-18)                  event SOLOWOW_PROGRESSION_UPDATE
 //   GetSoloWowXPRate()          -> rate, maxRate, paused (1/nil) event SOLOWOW_XP_RATE_UPDATE
 //   GetNumSpecSlots()           -> owned, active, nextPriceCopper event SOLOWOW_SPEC_SLOTS_UPDATE
-//   GetSpecSlotTalents(slot)    -> points in tree 1, 2, 3
+//   GetSpecSlotTalents(slot)    -> points in tree 1, 2, 3, then the slot's sub-class path name and id (if any)
 //
 // Each returns nil until the server has sent that part. Addons can test for the functions and keep their
 // CHAT_MSG_ADDON path for the stock client.
