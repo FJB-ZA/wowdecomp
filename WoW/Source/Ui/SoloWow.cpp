@@ -27,8 +27,6 @@ struct SoloWowStatus {
     uint32_t specOwned;
     uint32_t specNextPrice;
     uint32_t specPoints[SOLOWOW_MAX_SPEC_SLOTS][3];
-    uint32_t specPathId[SOLOWOW_MAX_SPEC_SLOTS];
-    char specPathName[SOLOWOW_MAX_SPEC_SLOTS][32];
 };
 
 static SoloWowStatus s_status;
@@ -110,10 +108,8 @@ static bool ParseXpRate(const char* message) {
     return true;
 }
 
-// "S1 <active> <owned> <nextPriceCopper> <p1> <p2> <p3> <p4>", where pN is "a/b/c", or "-" for a slot not bought.
-// "S2" adds each slot's sub-class path: "-" for the plain class, or "<id>:<Name_With_Underscores>".
+// "S1 <active> <owned> <nextPriceCopper> <p1> <p2> <p3> <p4>", where pN is "a/b/c", or "-" for a slot not bought
 static bool ParseSpecSlots(const char* message) {
-    bool withPaths = message[1] == '2';
     uint32_t active, owned, nextPrice;
     const char* text = ReadField(ReadField(ReadField(message + 2, active), owned), nextPrice);
 
@@ -149,47 +145,11 @@ static bool ParseSpecSlots(const char* message) {
         }
     }
 
-    uint32_t pathIds[SOLOWOW_MAX_SPEC_SLOTS] = {};
-    char pathNames[SOLOWOW_MAX_SPEC_SLOTS][32] = {};
-
-    for (uint32_t slot = 0; withPaths && slot < SOLOWOW_MAX_SPEC_SLOTS; slot++) {
-        if (*text++ != ' ') {
-            return false;
-        }
-
-        if (*text == '-') {
-            text++;
-            continue;
-        }
-
-        text = ReadNumber(text, pathIds[slot]);
-
-        if (!text || *text++ != ':') {
-            return false;
-        }
-
-        uint32_t length = 0;
-
-        for (; *text && *text != ' '; text++) {
-            if (length + 1 >= sizeof(pathNames[slot])) {
-                return false;
-            }
-
-            pathNames[slot][length++] = *text == '_' ? ' ' : *text;
-        }
-
-        if (!length) {
-            return false;
-        }
-    }
-
     if (*text) {
         return false;
     }
 
     SoloWowStatus& status = StatusToUpdate();
-    memcpy(status.specPathId, pathIds, sizeof(pathIds));
-    memcpy(status.specPathName, pathNames, sizeof(pathNames));
     status.hasSpecSlots = true;
     status.specActive = active;
     status.specOwned = owned;
@@ -212,7 +172,7 @@ bool SoloWow::HandleAddonMessage(const char* prefix, const char* message) {
         return false;
     }
 
-    if (!strcmp(prefix, "SoloWowSlots") && (!strncmp(message, "S1", 2) || !strncmp(message, "S2", 2))) {
+    if (!strcmp(prefix, "SoloWowSlots") && !strncmp(message, "S1", 2)) {
         return ParseSpecSlots(message);
     }
 
@@ -283,13 +243,7 @@ static int32_t Script_GetSpecSlotTalents(lua_State* L) {
         lua_pushnumber(L, status->specPoints[slot - 1][tree]);
     }
 
-    if (!status->specPathId[slot - 1]) {
-        return 3;
-    }
-
-    lua_pushstring(L, status->specPathName[slot - 1]);
-    lua_pushnumber(L, status->specPathId[slot - 1]);
-    return 5;
+    return 3;
 }
 
 static FrameScript_Method s_ScriptFunctions[] = {
