@@ -84,6 +84,39 @@ uint32_t SoloWowTracking::NpcFlags() {
     return flags;
 }
 
+// mod-transmog's Warpweaver and Ethereal Warpweaver (data/sql/db-world/2016_11_17_transmog_npc.sql)
+static const uint32_t s_transmogrifierEntries[] = { 190010, 190011 };
+
+bool SoloWowTracking::TracksCreatureEntry(uint32_t entry) {
+    if (!entry) {
+        return false;
+    }
+
+    for (uint32_t i = 0; i < NUM_TRACKING_TYPES; i++) {
+        if (!(s_typesOn & (1u << i)) || CGMinimapFrame::s_trackingTypes[i].m_type != 4) {
+            continue;
+        }
+
+        for (uint32_t j = 0; j < sizeof(s_transmogrifierEntries) / sizeof(s_transmogrifierEntries[0]); j++) {
+            if (s_transmogrifierEntries[j] == entry) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+const char* SoloWowTracking::Name(const TrackingTypeInfo* info) {
+    const char* name = FrameScript_GetText(info->m_name, -1, GENDER_NOT_APPLICABLE);
+
+    if ((!name || !name[0]) && info->m_type == 4) {
+        return "Transmogrifier";
+    }
+
+    return name;
+}
+
 bool SoloWowTracking::TracksGameObjectType(uint32_t typeId) {
     for (uint32_t i = 0; i < NUM_TRACKING_TYPES; i++) {
         const TrackingTypeInfo& info = CGMinimapFrame::s_trackingTypes[i];

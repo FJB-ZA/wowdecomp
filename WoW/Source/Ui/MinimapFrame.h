@@ -163,7 +163,7 @@ class CGMinimapFrame : public CSimpleFrame {
     static float s_blipSize4;
     static C3Vector s_blipQuads[3][4];
     static const TrackingTypeInfo* s_trackingInfo;
-    static const TrackingTypeInfo s_trackingTypes[15];
+    static const TrackingTypeInfo s_trackingTypes[16]; // solo-wow: 16 with the transmogrifier
     static int32_t CountAvailableTrackingTypes();
     static const TrackingTypeInfo* GetTrackingTypeByIndex(int32_t index);
     static int32_t s_trackingSpell;

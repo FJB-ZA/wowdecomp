@@ -19594,8 +19594,9 @@ uint32_t CGUnit_C::GetPortraitDisplayId() {
 // VERIFY: 74cc072f auto
 // OFFSET: 0x0071ACF0
 bool CGUnit_C::IsTracked() const {
-    // solo-wow addition (Ui/SoloWowTracking.h): any of the town filters on
-    return (this->m_unit->m_unitNpcFlags & SoloWowTracking::NpcFlags()) != 0;
+    // solo-wow addition (Ui/SoloWowTracking.h): any of the town filters on, the transmogrifiers by entry
+    return (this->m_unit->m_unitNpcFlags & SoloWowTracking::NpcFlags()) != 0
+        || SoloWowTracking::TracksCreatureEntry(this->m_obj->m_entryID);
 }
 
 // VERIFY: feea4653 manual

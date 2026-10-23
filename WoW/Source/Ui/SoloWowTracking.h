@@ -13,6 +13,9 @@
 //   SetTracking()              turns everything off
 //   GetSoloWowTrackingMode()   -> "multiple", so addons know they can offer checkboxes
 //
+// It adds a sixteenth filter, Transmogrifier, for mod-transmog's Warpweavers (matched by creature entry, as Wrath has
+// no transmogrifier NPC flag). GetTrackingInfo's fifth value is a filter's key (MINIMAP_TRACKING_REPAIR, ...).
+//
 // CGMinimapFrame::s_trackingInfo stays the filter the tracking button shows (the newest one on), and
 // CGMinimapFrame::s_trackingSpell the tracking spell it shows. The filters on are saved in the minimapTrackedInfo
 // CVar, space separated.
@@ -34,10 +37,16 @@ void Clear();
 // The town filter to show on the tracking button: info when it's on, else the first one on, else nullptr
 const TrackingTypeInfo* ShownType(const TrackingTypeInfo* info);
 
-// What the filters on track: NPC flags (type 1), whether a gameobject type (type 2) and trivial quests (type 3)
+// What the filters on track: NPC flags (type 1), whether a gameobject type (type 2), trivial quests (type 3) and
+// whether a creature by entry (type 4, solo-wow's own: the transmogrifiers)
 uint32_t NpcFlags();
+bool TracksCreatureEntry(uint32_t entry);
 bool TracksGameObjectType(uint32_t typeId);
 bool TracksTrivialQuests();
+
+// A filter's name in the client's language; the transmogrifier's falls back to English, as Wrath's GlobalStrings
+// have none (an addon can set MINIMAP_TRACKING_TRANSMOGRIFIER)
+const char* Name(const TrackingTypeInfo* info);
 
 // The filters on as the minimapTrackedInfo CVar holds them (space separated names)
 void FormatState(char* buffer, uint32_t size);

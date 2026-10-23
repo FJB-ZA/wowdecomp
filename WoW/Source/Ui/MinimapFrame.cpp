@@ -173,7 +173,7 @@ static uint32_t s_hoverParty;
 static uint64_t s_hoverRaid;
 
 // STATIC: 0x00A11C50
-const TrackingTypeInfo CGMinimapFrame::s_trackingTypes[15] = {
+const TrackingTypeInfo CGMinimapFrame::s_trackingTypes[16] = {
     { 1, 0x1000, "MINIMAP_TRACKING_REPAIR", "Repair", 0x0 },
     { 1, 0x200, "MINIMAP_TRACKING_VENDOR_FOOD", "Food", 0x0 },
     { 1, 0x400, "MINIMAP_TRACKING_VENDOR_POISON", "Poisons", 0x10 },
@@ -189,6 +189,9 @@ const TrackingTypeInfo CGMinimapFrame::s_trackingTypes[15] = {
     { 1, 0x20000, "MINIMAP_TRACKING_BANKER", "Banker", 0x0 },
     { 2, 0x13, "MINIMAP_TRACKING_MAILBOX", "Mailbox", 0x0 },
     { 3, 0x0, "MINIMAP_TRACKING_TRIVIAL_QUESTS", "TrivialQuests", 0x0 },
+    // solo-wow addition (Ui/SoloWowTracking.h): mod-transmog's Warpweavers, by creature entry; Wrath has no
+    // transmogrifier NPC flag or tracking icon, so it borrows the reagents icon
+    { 4, 0x0, "MINIMAP_TRACKING_TRANSMOGRIFIER", "Reagents", 0x0 },
 };
 
 // STATIC: 0x00A41E04

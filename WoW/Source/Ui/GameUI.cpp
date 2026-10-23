@@ -7142,7 +7142,7 @@ void CGGameUI::LoadMinimapTrackingState(const char* state) {
             length++;
         }
 
-        for (uint32_t i = 0; length && i < 15; i++) {
+        for (uint32_t i = 0; length && i < sizeof(CGMinimapFrame::s_trackingTypes) / sizeof(CGMinimapFrame::s_trackingTypes[0]); i++) {
             const TrackingTypeInfo& info = CGMinimapFrame::s_trackingTypes[i];
 
             if (SStrLen(info.m_name) == length && !SStrCmp(name, info.m_name, length)

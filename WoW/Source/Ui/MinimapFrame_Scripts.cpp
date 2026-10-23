@@ -141,7 +141,7 @@ static int32_t Script_GetTrackingInfo(lua_State* L) {
             return 0;
         }
 
-        lua_pushstring(L, FrameScript_GetText(info->m_name, -1, GENDER_NOT_APPLICABLE));
+        lua_pushstring(L, SoloWowTracking::Name(info)); // solo-wow addition: a name for the transmogrifier too
         char texture[128];
         SStrPrintf(texture, sizeof(texture), "%s\\%s", "Interface\\Minimap\\Tracking", info->m_texture);
         lua_pushstring(L, texture);
@@ -153,7 +153,8 @@ static int32_t Script_GetTrackingInfo(lua_State* L) {
         }
 
         lua_pushstring(L, "other");
-        return 4;
+        lua_pushstring(L, info->m_name); // solo-wow addition: the filter's key, such as MINIMAP_TRACKING_REPAIR
+        return 5;
     }
 
     SpellRec spell;
