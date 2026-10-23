@@ -86,6 +86,7 @@
 #include "WoW/Source/WorldClient/MapEntity.h"
 #include "WoW/Source/WorldClient/World.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 
 // STATIC: 0x00A335E8
 static const uint32_t s_oneShotAnims[7] = { 0xFFFFFFFF, 0, 8, 9, 10, 11, 12 };
@@ -2900,7 +2901,8 @@ UNIT_REACTION CGGameObject_C::ObjectReaction(const CGUnit_C* unit) const {
 // VERIFY: 7fd3c3af auto
 // OFFSET: 0x0070F850
 bool CGGameObject_C::IsTracked() const {
-    return CGMinimapFrame::s_trackingInfo && CGMinimapFrame::s_trackingInfo->m_type == 2 && CGMinimapFrame::s_trackingInfo->m_npcFlags == static_cast<uint32_t>(this->m_gameObject->m_typeID);
+    // solo-wow addition (Ui/SoloWowTracking.h): any of the town filters on
+    return SoloWowTracking::TracksGameObjectType(static_cast<uint32_t>(this->m_gameObject->m_typeID));
 }
 
 // VERIFY: a1c0c530 auto

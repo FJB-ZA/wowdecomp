@@ -144,6 +144,7 @@
 #include "WoW/Source/WorldClient/Map.h"
 #include "WoW/Source/WowSvcs/WowSvcsClient/ClientServices.h"
 #include "WoW/Source/Ui/SoloWowNamePlates.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 
 // STATIC: 0x00ADAC04
 static INVENTORY_SLOTS s_virtualItemInvSlots[2] = { INVSLOT_MAINHAND, INVSLOT_OFFHAND };
@@ -16422,7 +16423,8 @@ void CGUnit_C::OnAuraRemoved(uint32_t index, uint8_t a3, AuraData* aura, int32_t
         CGActionBar::OnAuraChanged(spellId);
 
         if (CGSpellBook::IsTrackingSpell(spellId)) {
-            CGMinimapFrame::SetTrackingSpell(0);
+            // solo-wow addition (Ui/SoloWowTracking.h): tracking spells stack; show another one still on
+            CGMinimapFrame::SetTrackingSpell(SoloWowTracking::AnySpellOnExcept(spellId));
         }
 
         if (CGSpellBook::IsShapeshiftSpell(spellId) && !SpellRec::HasAura(&spell, 36)) {
@@ -19592,7 +19594,8 @@ uint32_t CGUnit_C::GetPortraitDisplayId() {
 // VERIFY: 74cc072f auto
 // OFFSET: 0x0071ACF0
 bool CGUnit_C::IsTracked() const {
-    return CGMinimapFrame::s_trackingInfo && CGMinimapFrame::s_trackingInfo->m_type == 1 && (this->m_unit->m_unitNpcFlags & CGMinimapFrame::s_trackingInfo->m_npcFlags);
+    // solo-wow addition (Ui/SoloWowTracking.h): any of the town filters on
+    return (this->m_unit->m_unitNpcFlags & SoloWowTracking::NpcFlags()) != 0;
 }
 
 // VERIFY: feea4653 manual

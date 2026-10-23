@@ -143,6 +143,7 @@ class CGMinimapFrame : public CSimpleFrame {
     static void MinimapTextureCallback(EGxTexCommand command, uint32_t width, uint32_t height, uint32_t depth, uint32_t mipLevel, void* userArg, uint32_t& texelStrideInBytes, const void*& texels);
     static void SetTrackingSpell(int32_t spellId);
     static void LoadTrackingInfo(const TrackingTypeInfo* info);
+    static void SetTrackingType(const TrackingTypeInfo* info, bool on); // solo-wow addition
     static int32_t s_metatable;
     static int32_t s_objectType;
 

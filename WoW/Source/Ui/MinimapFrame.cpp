@@ -38,6 +38,7 @@
 #include "Engine/Source/Services/SysMessage.h"
 #include "Engine/Source/Os/TimeManager.h"
 #include "Engine/Source/Services/Camera.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 #include "Engine/Source/Gx/Gx.h"
 #include "WoW/Source/WorldClient/World.h"
 #include "WoW/Source/Ui/WorldMap.h"
@@ -666,6 +667,7 @@ void CGMinimapFrame::InitializeGame() {
 
     CGMinimapFrame::s_trackingSpell = 0;
     CGMinimapFrame::s_trackingInfo = nullptr;
+    SoloWowTracking::Reset(); // solo-wow addition (Ui/SoloWowTracking.h)
 }
 
 // VERIFY: 78b3bb60 manual
@@ -721,11 +723,8 @@ AreaPOIRec* MinimapGetGossipPoi() {
 void CGMinimapFrame::SetTrackingSpell(int32_t spellId) {
     CGMinimapFrame::s_trackingSpell = spellId;
 
-    if (spellId) {
-        CGMinimapFrame::LoadTrackingInfo(0);
-    } else {
-        Script_SendUniqueSignal(SCRIPT_EVENT_MINIMAP_UPDATE_TRACKING);
-    }
+    // solo-wow addition (Ui/SoloWowTracking.h): a tracking spell no longer turns the town filters off
+    Script_SendUniqueSignal(SCRIPT_EVENT_MINIMAP_UPDATE_TRACKING);
 }
 
 // VERIFY: 08401ea1 auto
@@ -2148,7 +2147,7 @@ void CGMinimapFrame::Render() {
 // VERIFY: cabffc62 auto
 // OFFSET: 0x0057BF30
 bool CGMinimapFrame::IsTrackingTrivialQuests() {
-    return CGMinimapFrame::s_trackingInfo && CGMinimapFrame::s_trackingInfo->m_type == 3;
+    return SoloWowTracking::TracksTrivialQuests(); // solo-wow addition (Ui/SoloWowTracking.h)
 }
 
 // VERIFY: 6d24deb9 auto
@@ -2283,7 +2282,8 @@ int32_t CGMinimapFrame::ObjectEnumProc(WOWGUID guid, void* param) {
             }
 
             if (unit->IsTracked() && player->CanInteract(unit)) {
-                if (CGMinimapFrame::s_trackingInfo->m_npcFlags & 0x40) {
+                // solo-wow addition (Ui/SoloWowTracking.h): the profession trainer filter among those on
+                if (SoloWowTracking::NpcFlags() & unit->m_unit->m_unitNpcFlags & 0x40) {
                     tracked = 1;
                 }
 
@@ -3263,19 +3263,31 @@ static int32_t UpdateObjectInteractIcon(WOWGUID guid, void* param) {
 // VERIFY: b1b39bd3 auto
 // OFFSET: 0x0057E070
 void CGMinimapFrame::LoadTrackingInfo(const TrackingTypeInfo* info) {
-    bool wasQuestTracking = CGMinimapFrame::s_trackingInfo ? CGMinimapFrame::s_trackingInfo->m_type == 3 : false;
-    CGMinimapFrame::s_trackingInfo = info;
+    // solo-wow addition (Ui/SoloWowTracking.h): info turns one more filter on, nullptr turns them all off
+    CGMinimapFrame::SetTrackingType(info, info != nullptr);
+}
+
+// solo-wow addition, not part of the original client (Ui/SoloWowTracking.h): turns one town filter on or off,
+// or, with info nullptr, all of them off; LoadTrackingInfo's work for a set of filters
+void CGMinimapFrame::SetTrackingType(const TrackingTypeInfo* info, bool on) {
+    bool wasQuestTracking = SoloWowTracking::TracksTrivialQuests();
+
+    if (info) {
+        SoloWowTracking::Set(info, on);
+    } else {
+        SoloWowTracking::Clear();
+    }
+
+    CGMinimapFrame::s_trackingInfo = SoloWowTracking::ShownType(on ? info : nullptr);
     CVar* var = CVar::Lookup("minimapTrackedInfo");
 
     if (var) {
-        if (info) {
-            var->Set(info->m_name, true, false, false, true);
-        } else {
-            var->Set("", true, false, false, true);
-        }
+        char state[512];
+        SoloWowTracking::FormatState(state, sizeof(state));
+        var->Set(state, true, false, false, true);
     }
 
-    bool isQuestTracking = CGMinimapFrame::s_trackingInfo ? CGMinimapFrame::s_trackingInfo->m_type == 3 : false;
+    bool isQuestTracking = SoloWowTracking::TracksTrivialQuests();
 
     if (wasQuestTracking != isQuestTracking) {
         ClntObjMgrEnumVisibleObjects(UpdateObjectInteractIcon, nullptr);

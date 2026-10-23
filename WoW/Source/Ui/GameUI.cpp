@@ -172,6 +172,7 @@
 #include "Engine/Source/Tempest/C33Matrix.h"
 #include "WoW/Source/DB/Rec/CreatureFamilyRec.h"
 #include "WoW/Source/DB/Rec/CreatureTypeRec.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 
 namespace {
 // User inactivity thresholds in milliseconds; signed to match idleTime arithmetic.
@@ -7127,13 +7128,30 @@ void CGGameUI::LoadMinimapTrackingState(const char* state) {
     CGUnit_C* player = static_cast<CGUnit_C*>(ClntObjMgrObjectPtr(ClntObjMgrGetActivePlayer(), TYPEMASK_PLAYER, __FILE__, __LINE__));
     uint32_t classMask = player ? 1 << player->m_unit->m_unitFieldBytes0[1] : 0;
 
-    for (uint32_t i = 0; i < 15; i++) {
-        const TrackingTypeInfo& info = CGMinimapFrame::s_trackingTypes[i];
+    // solo-wow addition (Ui/SoloWowTracking.h): the state names every filter that was on, space separated
+    const char* name = state;
 
-        if (!SStrCmp(state, info.m_name, STORM_MAX_STR) && (!info.m_classMask || (info.m_classMask & classMask))) {
-            CGMinimapFrame::LoadTrackingInfo(&info);
-            return;
+    while (name && *name) {
+        while (*name == ' ') {
+            name++;
         }
+
+        size_t length = 0;
+
+        while (name[length] && name[length] != ' ') {
+            length++;
+        }
+
+        for (uint32_t i = 0; length && i < 15; i++) {
+            const TrackingTypeInfo& info = CGMinimapFrame::s_trackingTypes[i];
+
+            if (SStrLen(info.m_name) == length && !SStrCmp(name, info.m_name, length)
+                && (!info.m_classMask || (info.m_classMask & classMask))) {
+                CGMinimapFrame::LoadTrackingInfo(&info);
+            }
+        }
+
+        name += length;
     }
 }
 

@@ -168,6 +168,7 @@
 #include "WoW/Source/Object/WGUID.h"
 #include "WoW/Source/Ui/SoloWow.h"
 #include "WoW/Source/Ui/SoloWowNamePlates.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 
 // STATIC: 0x00BD0CC4
 static CWOWClientStatus* s_loadAddOnStatus;
@@ -6569,6 +6570,7 @@ void LoadScriptFunctions() {
     BattlenetUI_RegisterScriptFunctions();
     SoloWow::RegisterScriptFunctions();
     SoloWowNamePlates::RegisterScriptFunctions();
+    SoloWowTracking::RegisterScriptFunctions();
 }
 
 // VERIFY: ce499890 manual
@@ -6653,4 +6655,5 @@ void UnloadScriptFunctions() {
     BattlenetUI_UnregisterScriptFunctions();
     SoloWow::UnregisterScriptFunctions();
     SoloWowNamePlates::UnregisterScriptFunctions();
+    SoloWowTracking::UnregisterScriptFunctions();
 }

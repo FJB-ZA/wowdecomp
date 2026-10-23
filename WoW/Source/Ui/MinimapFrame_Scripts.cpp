@@ -26,6 +26,7 @@
 #include "Engine/Source/Services/Texture.h"
 #include "Engine/Source/ConsoleBase/ConsoleVar.h"
 #include "Engine/Source/Base/Handle.h"
+#include "WoW/Source/Ui/SoloWowTracking.h"
 
 int32_t Script_SetMaskTexture(lua_State* L);
 int32_t Script_SetIconTexture(lua_State* L);
@@ -145,7 +146,7 @@ static int32_t Script_GetTrackingInfo(lua_State* L) {
         SStrPrintf(texture, sizeof(texture), "%s\\%s", "Interface\\Minimap\\Tracking", info->m_texture);
         lua_pushstring(L, texture);
 
-        if (CGMinimapFrame::s_trackingInfo == info) {
+        if (SoloWowTracking::IsOn(info)) { // solo-wow addition (Ui/SoloWowTracking.h): every filter on
             lua_pushnumber(L, 1.0);
         } else {
             lua_pushnil(L);
@@ -161,7 +162,8 @@ static int32_t Script_GetTrackingInfo(lua_State* L) {
         return 0;
     }
 
-    bool active = CGMinimapFrame::s_trackingSpell == spell.m_id;
+    // solo-wow addition (Ui/SoloWowTracking.h): every tracking spell whose aura is on, as they stack
+    bool active = SoloWowTracking::HasSpell(spell.m_id);
     lua_pushstring(L, spell.m_name);
     SpellIconRec* icon = g_spellIconDB.GetRecord(active && spell.m_activeIconID ? spell.m_activeIconID : spell.m_spellIconID);
 
@@ -312,27 +314,33 @@ static int32_t Script_GetPingPosition(lua_State* L) {
 // VERIFY: 77953830 manual
 // OFFSET: 0x0057F380
 static int32_t Script_SetTracking(lua_State* L) {
+    // solo-wow addition (Ui/SoloWowTracking.h): with no index everything goes off; an index toggles that spell or
+    // town filter, leaving the others as they are
     if (!lua_isnumber(L, 1)) {
-        int32_t spellId = CGMinimapFrame::s_trackingSpell;
-
-        if (spellId) {
-            SpellRec spell;
-
-            if (g_spellDB.GetRecord(spellId, &spell)) {
-                Spell_C_CancelAura(&spell, ClntObjMgrGetActivePlayerObj(), -1);
-                CGMinimapFrame::s_trackingSpell = 0;
-                Script_SendUniqueSignal(SCRIPT_EVENT_MINIMAP_UPDATE_TRACKING);
-            }
-        }
-
+        SoloWowTracking::CancelSpells();
+        CGMinimapFrame::s_trackingSpell = 0;
         CGMinimapFrame::LoadTrackingInfo(nullptr);
         return 0;
     }
 
     int32_t index = static_cast<int32_t>(static_cast<int64_t>(lua_tonumber(L, 1))) - 1;
 
+    if (index < 0) {
+        return 0;
+    }
+
     if (index < static_cast<int32_t>(s_trackingSpells.Count())) {
-        Spell_C::CastSpell(s_trackingSpells.m_data[index], nullptr, WOWGUID(), false);
+        int32_t spellId = s_trackingSpells.m_data[index];
+        SpellRec spell;
+
+        if (SoloWowTracking::HasSpell(spellId)) {
+            if (g_spellDB.GetRecord(spellId, &spell)) {
+                Spell_C_CancelAura(&spell, ClntObjMgrGetActivePlayerObj(), -1);
+            }
+        } else {
+            Spell_C::CastSpell(spellId, nullptr, WOWGUID(), false);
+        }
+
         return 0;
     }
 
@@ -342,17 +350,7 @@ static int32_t Script_SetTracking(lua_State* L) {
         return 0;
     }
 
-    int32_t spellId = CGMinimapFrame::s_trackingSpell;
-
-    if (spellId) {
-        SpellRec spell;
-
-        if (g_spellDB.GetRecord(spellId, &spell)) {
-            Spell_C_CancelAura(&spell, ClntObjMgrGetActivePlayerObj(), -1);
-        }
-    }
-
-    CGMinimapFrame::LoadTrackingInfo(info);
+    CGMinimapFrame::SetTrackingType(info, !SoloWowTracking::IsOn(info));
     return 0;
 }
 
